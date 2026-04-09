@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字轉語意 HTML 轉換器 - 專業版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 預覽區樣式：與產出的 CSS 保持一致 */
+        #previewArea dl { border: 1px solid #e2e8f0; padding: 32px; border-radius: 12px; background: white; }
+        
+        /* 問題樣式：字重 600 */
+        #previewArea dt { 
+            font-weight: 600; 
+            color: #1e293b; 
+            font-size: 1.15rem; 
+            margin-bottom: 10px;
+        }
+        
+        /* 答案樣式：字重 400，帶底線與精確間距 */
+        #previewArea dd { 
+            font-weight: 400; 
+            margin-left: 0; 
+            margin-bottom: 30px; 
+            line-height: 1.6; 
+            border-bottom: 1px solid #eee; 
+            padding: 0px 0px 35px 0px;
+            color: #475569;
+        }
+        
+        #previewArea dd:last-child { 
+            border-bottom: none; 
+            margin-bottom: 0; 
+            padding-bottom: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4 font-sans text-slate-800">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Divi 語意轉換器 <span class="text-blue-600">專業版</span>
+                </h1>
+                <p class="text-slate-500 text-sm mt-1">已套用高階顧問建議樣式：精確字重、底線分隔與呼吸感間距</p>
+            </div>
+            <button id="clearBtn" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-red-600 transition">清空內容</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Input -->
+            <div class="flex flex-col">
+                <label class="block mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">1. 貼入原始文字</label>
+                <textarea 
+                    id="inputArea" 
+                    class="w-full h-[650px] p-5 rounded-2xl border border-slate-200 shadow-sm focus:ring-4 focus:ring-blue-100 outline-none text-sm leading-relaxed transition-all"
+                    placeholder="請貼入內容，每一組問答之間請空一行。
+                    
+例如：
+Q1：為什麼要用 NotebookLM？
+關鍵在於來源鎖定機制...
+
+Q2：如何快速建立資料結構？
+建議善用心智圖功能..."
+                ></textarea>
+            </div>
+
+            <!-- Output -->
+            <div class="flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">2. 產出的 SEO 代碼 (含樣式)</label>
+                    <button id="copyBtn" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200">
+                        複製 HTML 代碼
+                    </button>
+                </div>
+                <textarea 
+                    id="outputArea" 
+                    readonly
+                    class="w-full h-[650px] p-5 rounded-2xl border border-slate-200 bg-slate-900 font-mono text-[11px] text-blue-300 outline-none shadow-inner"
+                    placeholder="等待產出..."
+                ></textarea>
+            </div>
+
+            <!-- Preview -->
+            <div class="flex flex-col">
+                <label class="block mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">3. 即時預覽 (確認樣式效果)</label>
+                <div id="previewArea" class="w-full h-[650px] overflow-auto p-2 rounded-2xl border border-slate-200 bg-slate-100 shadow-inner">
+                    <div class="text-slate-400 text-center mt-32 italic">請在左側輸入文字...</div>
+                </div>
+                <div id="statusMsg" class="mt-3 text-center text-xs font-bold text-green-600 opacity-0 transition-all transform translate-y-2">
+                    ✓ 代碼已複製！請至 Divi 切換到「文字」模式後貼上。
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const inputArea = document.getElementById('inputArea');
+        const outputArea = document.getElementById('outputArea');
+        const previewArea = document.getElementById('previewArea');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        function convertLogic() {
+            const rawText = inputArea.value.trim();
+            if (!rawText) {
+                outputArea.value = '';
+                previewArea.innerHTML = '<div class="text-slate-400 text-center mt-32 italic">請在左側輸入文字...</div>';
+                return;
+            }
+
+            // 根據空行拆分
+            const blocks = rawText.split(/\n\s*\n/);
+            
+            // 根據用戶要求更新的樣式標頭
+            let styleHeader = `<style>
+  .divi-qa-list { margin-bottom: 20px; }
+  .divi-qa-list dt { font-weight: 600; color: inherit; margin-bottom: 10px; font-size: 1.1em; }
+  .divi-qa-list dd { 
+    font-weight: 400; 
+    margin-left: 0; 
+    margin-bottom: 30px; 
+    line-height: 1.6; 
+    border-bottom: 1px solid #eee; 
+    padding: 0px 0px 35px 0px; 
+  }
+  .divi-qa-list dd:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+</style>\n\n`;
+
+            let htmlContent = '<dl class="divi-qa-list">\n';
+            
+            blocks.forEach(block => {
+                const lines = block.trim().split('\n');
+                if (lines.length > 0) {
+                    const question = lines[0].trim();
+                    const answers = lines.slice(1);
+                    
+                    htmlContent += `  <dt>${question}</dt>\n`;
+                    
+                    if (answers.length > 0) {
+                        const answerText = answers.map(l => l.trim()).join('<br>\n    ');
+                        htmlContent += `  <dd>\n    ${answerText}\n  </dd>\n`;
+                    } else {
+                        htmlContent += `  <dd></dd>\n`;
+                    }
+                }
+            });
+
+            htmlContent += '</dl>';
+            
+            outputArea.value = styleHeader + htmlContent;
+            previewArea.innerHTML = htmlContent;
+        }
+
+        inputArea.addEventListener('input', convertLogic);
+
+        copyBtn.addEventListener('click', () => {
+            if (!outputArea.value) return;
+            outputArea.select();
+            document.execCommand('copy');
+            
+            statusMsg.classList.remove('opacity-0', 'translate-y-2');
+            statusMsg.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                statusMsg.classList.add('opacity-0', 'translate-y-2');
+                statusMsg.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            inputArea.value = '';
+            convertLogic();
+        });
+    </script>
+</body>
+</html>
