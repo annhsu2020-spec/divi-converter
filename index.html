@@ -3,35 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文字轉語意 HTML 轉換器 - 專業版</title>
+    <title>文字轉語意 HTML 轉換器 - 專業摺疊版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 預覽區樣式：與產出的 CSS 保持一致 */
-        #previewArea dl { border: 1px solid #e2e8f0; padding: 32px; border-radius: 12px; background: white; }
+        /* 預覽區樣式：模擬網站實際摺疊呈現 */
+        #previewArea .preview-container { border: 1px solid #e2e8f0; padding: 20px 32px; border-radius: 12px; background: white; }
         
-        /* 問題樣式：字重 600 */
-        #previewArea dt { 
+        #previewArea details {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+        }
+        
+        #previewArea details:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        #previewArea summary { 
             font-weight: 600; 
             color: #1e293b; 
             font-size: 1.15rem; 
-            margin-bottom: 10px;
+            padding: 15px 0;
+            cursor: pointer;
+            list-style: none; /* 隱藏預設箭頭 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        /* 答案樣式：字重 400，帶底線與精確間距 */
-        #previewArea dd { 
+        /* 隱藏 Safari 的預設箭頭 */
+        #previewArea summary::-webkit-details-marker { display: none; }
+        
+        /* 自訂加減號圖示 */
+        #previewArea summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: #3b82f6;
+            font-weight: 400;
+            transition: transform 0.3s ease;
+        }
+        
+        #previewArea details[open] summary::after {
+            content: '−'; /* 減號 */
+            transform: rotate(180deg);
+        }
+
+        /* 答案樣式 */
+        #previewArea .qa-answer { 
             font-weight: 400; 
             margin-left: 0; 
-            margin-bottom: 30px; 
+            padding: 0px 0px 20px 0px;
             line-height: 1.6; 
-            border-bottom: 1px solid #eee; 
-            padding: 0px 0px 35px 0px;
             color: #475569;
-        }
-        
-        #previewArea dd:last-child { 
-            border-bottom: none; 
-            margin-bottom: 0; 
-            padding-bottom: 0;
         }
     </style>
 </head>
@@ -43,11 +66,11 @@
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    Divi 語意轉換器 <span class="text-blue-600">專業版</span>
+                    Divi 語意轉換器 <span class="text-blue-600">專業摺疊版 (Accordion)</span>
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">已套用高階顧問建議：自動生成 FAQ Schema、精確字重與呼吸感間距</p>
+                <p class="text-slate-500 text-sm mt-1">已套用高階顧問建議：原生 HTML5 摺疊面板、無須 JS、含自動 Schema 生成</p>
             </div>
             <button id="clearBtn" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-red-600 transition">清空內容</button>
         </div>
@@ -74,7 +97,7 @@ Q2：如何快速建立資料結構？
             <!-- Output -->
             <div class="flex flex-col">
                 <div class="flex items-center justify-between mb-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">2. 產出的 SEO 代碼 (含 Schema)</label>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">2. 產出的 SEO 代碼 (含摺疊樣式與 Schema)</label>
                     <button id="copyBtn" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200">
                         複製 HTML 代碼
                     </button>
@@ -89,7 +112,7 @@ Q2：如何快速建立資料結構？
 
             <!-- Preview -->
             <div class="flex flex-col">
-                <label class="block mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">3. 即時預覽 (確認樣式效果)</label>
+                <label class="block mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">3. 即時預覽 (點擊可測試摺疊效果)</label>
                 <div id="previewArea" class="w-full h-[650px] overflow-auto p-2 rounded-2xl border border-slate-200 bg-slate-100 shadow-inner">
                     <div class="text-slate-400 text-center mt-32 italic">請在左側輸入文字...</div>
                 </div>
@@ -117,27 +140,47 @@ Q2：如何快速建立資料結構？
                 return;
             }
 
-            // 根據空行拆分
             const blocks = rawText.split(/\n\s*\n/);
             
-            // 根據用戶要求更新的樣式標頭
+            // 替 Divi 準備的內聯 CSS，包含自訂的 +/- 圖示與動畫效果
             let styleHeader = `<style>
-  .divi-qa-list { margin-bottom: 20px; }
-  .divi-qa-list dt { font-weight: 600; color: inherit; margin-bottom: 10px; font-size: 1.1em; }
-  .divi-qa-list dd { 
+  .divi-qa-container { margin-bottom: 20px; }
+  .divi-qa-item { border-bottom: 1px solid #eee; margin-bottom: 5px; }
+  .divi-qa-item:last-child { border-bottom: none; }
+  
+  .divi-qa-item summary { 
+    font-weight: 600; 
+    color: inherit; 
+    font-size: 1.1em; 
+    padding: 15px 0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .divi-qa-item summary::-webkit-details-marker { display: none; }
+  .divi-qa-item summary::after {
+    content: '+';
+    font-size: 1.5em;
+    color: #3b82f6; /* 您可以在 Divi 中修改這個顏色符合品牌色 */
+    transition: transform 0.3s ease;
+  }
+  .divi-qa-item[open] summary::after {
+    content: '−';
+    transform: rotate(180deg);
+  }
+  
+  .divi-qa-answer { 
     font-weight: 400; 
     margin-left: 0; 
-    margin-bottom: 30px; 
     line-height: 1.6; 
-    border-bottom: 1px solid #eee; 
-    padding: 0px 0px 35px 0px; 
+    padding: 0px 0px 20px 0px; 
   }
-  .divi-qa-list dd:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 </style>\n\n`;
 
-            let htmlContent = '<dl class="divi-qa-list">\n';
+            let htmlContent = '<div class="divi-qa-container">\n';
             
-            // 初始化 FAQ Schema 結構
             let schemaData = {
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
@@ -150,19 +193,22 @@ Q2：如何快速建立資料結構？
                     const question = lines[0].trim();
                     const answers = lines.slice(1);
                     
-                    htmlContent += `  <dt>${question}</dt>\n`;
+                    // 使用 details 與 summary 建立摺疊結構
+                    htmlContent += `  <details class="divi-qa-item">\n`;
+                    htmlContent += `    <summary>${question}</summary>\n`;
                     
                     let schemaAnswerText = '';
 
                     if (answers.length > 0) {
-                        const answerText = answers.map(l => l.trim()).join('<br>\n    ');
-                        schemaAnswerText = answers.map(l => l.trim()).join('<br>'); // Schema 用的無縮排版本
-                        htmlContent += `  <dd>\n    ${answerText}\n  </dd>\n`;
+                        const answerText = answers.map(l => l.trim()).join('<br>\n      ');
+                        schemaAnswerText = answers.map(l => l.trim()).join('<br>');
+                        htmlContent += `    <div class="divi-qa-answer">\n      ${answerText}\n    </div>\n`;
                     } else {
-                        htmlContent += `  <dd></dd>\n`;
+                        htmlContent += `    <div class="divi-qa-answer"></div>\n`;
                     }
+                    
+                    htmlContent += `  </details>\n`;
 
-                    // 寫入 Schema 陣列
                     schemaData.mainEntity.push({
                         "@type": "Question",
                         "name": question,
@@ -174,18 +220,16 @@ Q2：如何快速建立資料結構？
                 }
             });
 
-            htmlContent += '</dl>';
+            htmlContent += '</div>';
             
-            // 組合 Schema 代碼 (徹底拆解 script 字串，避免任何編輯器或預覽器提早切斷檔案)
             const sTagOpen = '<scr' + 'ipt type="application/ld+json">';
             const sTagClose = '</scr' + 'ipt>';
-            const schemaScript = `\n\n<!-- 🤖 搜尋引擎專用 FAQ Schema (請勿刪除) -->\n${sTagOpen}\n${JSON.stringify(schemaData, null, 2)}\n${sTagClose}`;
+            const schemaScript = `\n\n<!--搜尋引擎專用 FAQ Schema (請勿刪除) -->\n${sTagOpen}\n${JSON.stringify(schemaData, null, 2)}\n${sTagClose}`;
             
-            // 輸出至畫面：樣式 + 結構 + Schema
             outputArea.value = styleHeader + htmlContent + schemaScript;
             
-            // 預覽區不需要渲染 Schema script
-            previewArea.innerHTML = htmlContent;
+            // 預覽區套用一層容器以顯示外框
+            previewArea.innerHTML = `<div class="preview-container">${htmlContent}</div>`;
         }
 
         inputArea.addEventListener('input', convertLogic);
