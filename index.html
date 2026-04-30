@@ -47,7 +47,7 @@
                     </svg>
                     Divi 語意轉換器 <span class="text-blue-600">專業版</span>
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">已套用高階顧問建議樣式：精確字重、底線分隔與呼吸感間距</p>
+                <p class="text-slate-500 text-sm mt-1">已套用高階顧問建議：自動生成 FAQ Schema、精確字重與呼吸感間距</p>
             </div>
             <button id="clearBtn" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-red-600 transition">清空內容</button>
         </div>
@@ -74,7 +74,7 @@ Q2：如何快速建立資料結構？
             <!-- Output -->
             <div class="flex flex-col">
                 <div class="flex items-center justify-between mb-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">2. 產出的 SEO 代碼 (含樣式)</label>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">2. 產出的 SEO 代碼 (含 Schema)</label>
                     <button id="copyBtn" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200">
                         複製 HTML 代碼
                     </button>
@@ -137,6 +137,13 @@ Q2：如何快速建立資料結構？
 
             let htmlContent = '<dl class="divi-qa-list">\n';
             
+            // 初始化 FAQ Schema 結構
+            let schemaData = {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": []
+            };
+            
             blocks.forEach(block => {
                 const lines = block.trim().split('\n');
                 if (lines.length > 0) {
@@ -145,18 +152,39 @@ Q2：如何快速建立資料結構？
                     
                     htmlContent += `  <dt>${question}</dt>\n`;
                     
+                    let schemaAnswerText = '';
+
                     if (answers.length > 0) {
                         const answerText = answers.map(l => l.trim()).join('<br>\n    ');
+                        schemaAnswerText = answers.map(l => l.trim()).join('<br>'); // Schema 用的無縮排版本
                         htmlContent += `  <dd>\n    ${answerText}\n  </dd>\n`;
                     } else {
                         htmlContent += `  <dd></dd>\n`;
                     }
+
+                    // 寫入 Schema 陣列
+                    schemaData.mainEntity.push({
+                        "@type": "Question",
+                        "name": question,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": schemaAnswerText
+                        }
+                    });
                 }
             });
 
             htmlContent += '</dl>';
             
-            outputArea.value = styleHeader + htmlContent;
+            // 組合 Schema 代碼 (徹底拆解 script 字串，避免任何編輯器或預覽器提早切斷檔案)
+            const sTagOpen = '<scr' + 'ipt type="application/ld+json">';
+            const sTagClose = '</scr' + 'ipt>';
+            const schemaScript = `\n\n<!-- 🤖 搜尋引擎專用 FAQ Schema (請勿刪除) -->\n${sTagOpen}\n${JSON.stringify(schemaData, null, 2)}\n${sTagClose}`;
+            
+            // 輸出至畫面：樣式 + 結構 + Schema
+            outputArea.value = styleHeader + htmlContent + schemaScript;
+            
+            // 預覽區不需要渲染 Schema script
             previewArea.innerHTML = htmlContent;
         }
 
