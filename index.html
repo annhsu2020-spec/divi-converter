@@ -226,51 +226,6 @@ Q2：如何快速建立資料結構？
             const sTagClose = '</scr' + 'ipt>';
             const schemaScript = `\n\n<!--搜尋引擎專用 FAQ Schema (請勿刪除) -->\n${sTagOpen}\n${JSON.stringify(schemaData, null, 2)}\n${sTagClose}`;
             
-            // ** 容錯機制與屬性清理 (適用於表格等潛在輸入) **
-            // 為了處理可能被當作文字輸入的 HTML 結構 (雖然這個轉換器主要針對純文字 QA，但防護機制是有益的)
-            // 這裡新增一段邏輯，如果有 <table>，自動修正 <thead> 內的 <td> 並移除 width
-            try {
-                // 建立一個臨時的 DOM 元素來處理字串中的 HTML
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = htmlContent;
-                
-                const tables = tempDiv.querySelectorAll('table');
-                tables.forEach(table => {
-                    // 1. 清理 fixed widths
-                    table.removeAttribute('width');
-                    const allCells = table.querySelectorAll('td, th');
-                    allCells.forEach(cell => cell.removeAttribute('width'));
-                    
-                    // 2. 修正 <thead> 內的 <td> 為 <th> (純語意修正，雖然樣式這裡主要不控管 table)
-                    const theadTds = table.querySelectorAll('thead td');
-                    theadTds.forEach(td => {
-                        const th = document.createElement('th');
-                        th.innerHTML = td.innerHTML;
-                        // 複製屬性
-                        Array.from(td.attributes).forEach(attr => {
-                            if(attr.name !== 'width') {
-                                th.setAttribute(attr.name, attr.value);
-                            }
-                        });
-                        td.parentNode.replaceChild(th, td);
-                    });
-                    
-                    // 3. 基本的響應式包覆 (如果它還沒被包覆)
-                    if (!table.parentElement.classList.contains('table-responsive-wrapper')) {
-                        const wrapper = document.createElement('div');
-                        wrapper.style.cssText = 'width: 100%; overflow-x: auto; margin-bottom: 20px;';
-                        wrapper.className = 'table-responsive-wrapper';
-                        table.parentNode.insertBefore(wrapper, table);
-                        wrapper.appendChild(table);
-                    }
-                });
-                
-                // 將修正後的 HTML 取回
-                htmlContent = tempDiv.innerHTML;
-            } catch (e) {
-                console.warn("HTML sanitization step skipped due to parser error.", e);
-            }
-
             outputArea.value = styleHeader + htmlContent + schemaScript;
             
             // 預覽區套用一層容器以顯示外框
@@ -296,11 +251,6 @@ Q2：如何快速建立資料結構？
             inputArea.value = '';
             convertLogic();
         });
-        
-        // 初始執行一次以防有預設文字
-        if(inputArea.value.trim() !== '') {
-            convertLogic();
-        }
     </script>
 </body>
 </html>
